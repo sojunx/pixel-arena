@@ -1,0 +1,56 @@
+services:
+  ui:
+    container_name: pixel-ui
+    networks:
+      - pixel_arena_network
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+
+  server:
+    container_name: pixel-server
+    networks:
+      - pixel_arena_network
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/pixel_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin123
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    container_name: postgres_sql
+    image: postgres
+    networks:
+      - pixel_arena_network
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: pixel_db
+      PGDATA: /data/postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pixel_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres:/data/postgres
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres:
+
+networks:
+  pixel_arena_network:
