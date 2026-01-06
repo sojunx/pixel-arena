@@ -1,7 +1,6 @@
 import ColorPicker from "./ColorPicker";
 import ConcurrencyModes from "./ConcurrencyModes";
 import DemoTool from "./DemoTool";
-import Logs from "./Logs";
 
 const Sidebar = () => {
   return (
@@ -9,7 +8,6 @@ const Sidebar = () => {
       <ColorPicker />
       <ConcurrencyModes />
       <DemoTool />
-      <Logs />
     </div>
   );
 };

@@ -107,7 +107,7 @@ export class PixelCanvas extends BaseCanvas {
     if (!this.data) return;
 
     this.data.forEach((pixel) => {
-      if (pixel.updatedBy !== "system")
+      if (pixel.color !== "#FFFFFF")
         this.fillRect(pixel.color, pixel.x, pixel.y);
     });
   }

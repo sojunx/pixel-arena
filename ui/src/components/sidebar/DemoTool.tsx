@@ -1,7 +1,9 @@
-import { useCanvasTool, useLogger } from "@/hooks";
+import { useCanvasTool, useLogger, useCanvas } from "@/hooks";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { http } from "@/lib/http";
 import type { PixelRequest } from "@/lib/types";
+import { useState, useEffect } from "react";
 
 const DEMO_USER_COLORS = [
   { username: "alice", color: "#f65356" },
@@ -59,18 +61,31 @@ const DEMO_USER_COLORS = [
 const DemoTool = () => {
   const { addLog } = useLogger();
   const { currentMode } = useCanvasTool();
-  // const { currentUsername } = useAuth();
+  const { selectedPos } = useCanvas();
+  
+  const [numRequests, setNumRequests] = useState<number>(50);
+  const [targetX, setTargetX] = useState<number>(50);
+  const [targetY, setTargetY] = useState<number>(50);
 
-  const handleSend50 = async () => {
-    const requests = DEMO_USER_COLORS.map((userColor, i) => {
+  // Tự động cập nhật X, Y khi user click vào canvas
+  useEffect(() => {
+    if (selectedPos) {
+      setTargetX(selectedPos.x);
+      setTargetY(selectedPos.y);
+    }
+  }, [selectedPos]);
+
+  const handleSendRequests = async () => {
+    const requestCount = Math.min(numRequests, DEMO_USER_COLORS.length);
+    const requests = DEMO_USER_COLORS.slice(0, requestCount).map((userColor, i) => {
       const { username, color } = userColor;
 
       return http
         .post("/pixels/paint", {
-          x: 50,
-          y: 50,
+          x: targetX,
+          y: targetY,
           color,
-          updatedBy: username, // dùng currentUsername nếu có, fallback về demo username
+          updatedBy: username,
           mode: currentMode,
         } as PixelRequest)
         .then(() => addLog("DEMO", `#${i + 1} painted ${color} as ${username}`))
@@ -86,13 +101,53 @@ const DemoTool = () => {
     <section>
       <h1>Demo Tools</h1>
 
-      <Button
-        variant={"destructive"}
-        className="w-full rounded cursor-pointer"
-        onClick={handleSend50}
-      >
-        Send 50 requests to (50,50)
-      </Button>
+      <div className="space-y-2">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm text-muted-foreground">Number of Requests</label>
+          <Input
+            type="number"
+            min={1}
+            max={50}
+            value={numRequests}
+            onChange={(e) => setNumRequests(Math.max(1, parseInt(e.target.value) || 1))}
+            placeholder="Enter number (1-50)"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm text-muted-foreground">X Coordinate</label>
+            <Input
+              type="number"
+              min={0}
+              max={99}
+              value={targetX}
+              onChange={(e) => setTargetX(Math.max(0, Math.min(99, parseInt(e.target.value) || 0)))}
+              placeholder="X (0-99)"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm text-muted-foreground">Y Coordinate</label>
+            <Input
+              type="number"
+              min={0}
+              max={99}
+              value={targetY}
+              onChange={(e) => setTargetY(Math.max(0, Math.min(99, parseInt(e.target.value) || 0)))}
+              placeholder="Y (0-99)"
+            />
+          </div>
+        </div>
+
+        <Button
+          variant={"destructive"}
+          className="w-full rounded cursor-pointer"
+          onClick={handleSendRequests}
+        >
+          Send Request
+        </Button>
+      </div>
     </section>
   );
 };

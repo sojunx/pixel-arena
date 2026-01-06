@@ -2,6 +2,7 @@ import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { Toaster } from "sonner";
 import { Navbar, UsernameDialog } from "@/components";
 import { Sidebar } from "@/components/sidebar";
+import Logs from "@/components/sidebar/Logs";
 import { Canvas, HoverCanvas, PinCanvas, History } from "@/components/canvas";
 
 const App = () => {
@@ -12,6 +13,9 @@ const App = () => {
       <div id="root-container">
         <Navbar />
         <main>
+          <div id="left-sidebar">
+            <Logs />
+          </div>
           <div id="wrapper">
             <History />
 
